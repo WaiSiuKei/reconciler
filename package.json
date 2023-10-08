@@ -1,0 +1,25 @@
+{
+  "name": "reconciler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "b": "node --inspect-brk node/index.mjs",
+    "t": "node node/index.mjs",
+    "gen": "regenerator --include-runtime ./example/es6.js > ./example/es5.js",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@vitejs/plugin-react": "^4.1.0",
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "recast": "^0.23.4",
+    "regenerator": "^0.14.10",
+    "typescript": "^5.2.2",
+    "vite": "^4.4.9"
+  }
+}
