@@ -6,7 +6,7 @@
   "types": "module",
   "scripts": {
     "debug": "node --inspect-brk src/transform/index.mjs",
-    "transform": "node src/transform/index.mjs > ./example/es5.js",
+    "transform": "node src/transform/index.mjs > ./docs/es5.js",
     "gen": "regenerator ./example/yield.js > ./example/es5.js",
     "build": "tsc"
   },

@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 var types = recast.types;
 var n = types.namedTypes;
 
-const content = fs.readFileSync(path.join(__dirname, '../../example/es6.js'), 'utf8');
+const content = fs.readFileSync(path.join(__dirname, '../../docs/es6.js'), 'utf8');
 const runtime = fs.readFileSync(path.join(__dirname, '../runtime/runtime.js'), "utf8")
 const transformOptions = {
   plugins: [
