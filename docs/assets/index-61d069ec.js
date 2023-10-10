@@ -1,1 +1,144 @@
-var h=Object.defineProperty;var g=(i,e,t)=>e in i?h(i,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):i[e]=t;var u=(i,e,t)=>(g(i,typeof e!="symbol"?e+"":e,t),t);(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const r of document.querySelectorAll('link[rel="modulepreload"]'))c(r);new MutationObserver(r=>{for(const s of r)if(s.type==="childList")for(const o of s.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&c(o)}).observe(document,{childList:!0,subtree:!0});function t(r){const s={};return r.integrity&&(s.integrity=r.integrity),r.referrerPolicy&&(s.referrerPolicy=r.referrerPolicy),r.crossOrigin==="use-credentials"?s.credentials="include":r.crossOrigin==="anonymous"?s.credentials="omit":s.credentials="same-origin",s}function c(r){if(r.ep)return;r.ep=!0;const s=t(r);fetch(r.href,s)}})();const w=1e3/60;let f,l;const m=new MessageChannel;let d=0;const y=()=>(d=performance.now(),f-d),F={didTimeout:!1,timeRemaining:y};m.port2.onmessage=()=>{typeof l=="function"&&l(F)};const p=i=>window.requestAnimationFrame(e=>{f=e+w,l=i,m.port1.postMessage(null)});class L{constructor(e){u(this,"prev",0);u(this,"next",0);u(this,"end",!1);u(this,"pendingFrame",null);this.innerFunc=e,this.workLoop=this.workLoop.bind(this)}tick(){this.innerFunc(this)}start(){this.pendingFrame=p(this.workLoop)}run(e){e()}workLoop(e){for(;!this.end&&e.timeRemaining()>1;)this.tick();this.end||(this.pendingFrame=p(this.workLoop.bind(this)))}stop(){this.end=!0,this.pendingFrame&&(window.cancelAnimationFrame(this.pendingFrame),this.pendingFrame=void 0)}}function b(i){const e=new L(i);return new Promise(()=>{e.start()})}const O={wrap:b};let a=0;function n(){console.time(a.toString()),console.timeEnd(a.toString()),a++}async function k(){return O.wrap(function(e){for(;;)switch(e.prev=e.next){case 0:return e.next=2,e.run(()=>n());case 2:return e.next=4,e.run(()=>n());case 4:return e.next=6,e.run(()=>n());case 6:return e.next=8,e.run(()=>n());case 8:return e.next=10,e.run(()=>n());case 10:return e.next=12,e.run(()=>n());case 12:return e.next=14,e.run(()=>n());case 14:return e.next=16,e.run(()=>n());case 16:return e.next=18,e.run(()=>n());case 18:return e.next=20,e.run(()=>n());case 20:return e.next=22,e.run(()=>n());case 22:return e.next=24,e.run(()=>n());case 24:return e.next=26,e.run(()=>n());case 26:return e.next=28,e.run(()=>n());case 28:case"end":return e.stop()}})}k();
+const fps = 1e3 / 60;
+let frameDeadline
+let pendingCallback
+const channel = new MessageChannel();
+let now = 0;
+const timeRemaining = () => {
+  now = performance.now();
+  return frameDeadline - now;
+};
+
+const deadline = {
+  didTimeout: false,
+  timeRemaining,
+};
+
+channel.port2.onmessage = () => {
+  if (typeof pendingCallback === 'function') {
+    pendingCallback(deadline);
+  }
+};
+
+const rIC = (callback) => {
+  return window.requestAnimationFrame((frameTime) => {
+    frameDeadline = frameTime + fps;
+    pendingCallback = callback;
+    channel.port1.postMessage(null);
+  });
+};
+
+export class Context {
+  prev = 0;
+  next = 0;
+  end = false;
+  pendingFrame = null;
+
+  constructor(innerFunc) {
+    this.innerFunc = innerFunc
+    this.workLoop = this.workLoop.bind(this)
+  }
+
+  tick() {
+    this.innerFunc(this)
+  }
+
+  start() {
+    this.pendingFrame = rIC(this.workLoop)
+  }
+
+  run(task) {
+    task()
+  }
+
+  workLoop(deadline) {
+    while (!this.end && deadline.timeRemaining() > 1) {
+      this.tick();
+    }
+
+    if (!this.end) {
+      this.pendingFrame = rIC(this.workLoop.bind(this))
+    }
+  }
+
+  stop() {
+    this.end = true;
+    if (this.pendingFrame) {
+      window.cancelAnimationFrame(this.pendingFrame)
+      this.pendingFrame = undefined;
+    }
+  }
+}
+
+function wrap(innerFunc) {
+  const ctx = new Context(innerFunc)
+  return new Promise(() => {
+    ctx.start();
+  })
+}
+
+const regeneratorRuntime = {
+  wrap
+}
+
+let taskCount = 0;
+function longtask() {
+  console.time(taskCount.toString());
+  let sum = 0;
+  while (sum < 5e5) {
+    sum += Math.random();
+  }
+  console.timeEnd(taskCount.toString());
+  taskCount++;
+}
+async function program$() {
+  return regeneratorRuntime.wrap(function program$$(_context) {
+    while (1) switch (_context.prev = _context.next) {
+      case 0:
+        _context.next = 2;
+        return _context.run(() => longtask(1));
+      case 2:
+        _context.next = 4;
+        return _context.run(() => longtask(2));
+      case 4:
+        _context.next = 6;
+        return _context.run(() => longtask(3));
+      case 6:
+        _context.next = 8;
+        return _context.run(() => longtask(3));
+      case 8:
+        _context.next = 10;
+        return _context.run(() => longtask(4));
+      case 10:
+        _context.next = 12;
+        return _context.run(() => longtask(5));
+      case 12:
+        _context.next = 14;
+        return _context.run(() => longtask(6));
+      case 14:
+        _context.next = 16;
+        return _context.run(() => longtask(7));
+      case 16:
+        _context.next = 18;
+        return _context.run(() => longtask(8));
+      case 18:
+        _context.next = 20;
+        return _context.run(() => longtask(9));
+      case 20:
+        _context.next = 22;
+        return _context.run(() => longtask(10));
+      case 22:
+        _context.next = 24;
+        return _context.run(() => longtask(11));
+      case 24:
+        _context.next = 26;
+        return _context.run(() => longtask(12));
+      case 26:
+        _context.next = 28;
+        return _context.run(() => longtask(14));
+      case 28:
+      case "end":
+        return _context.stop();
+    }
+  });
+}
+program$();
