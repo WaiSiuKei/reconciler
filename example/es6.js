@@ -1,20 +1,31 @@
-async function fiberTask() {
-  let a = 1;
-  let b = 2;
-  await longtask(0);
-  // await longtask(1);
-  // longtask(2);
-  // if (a) {
-  //   longtask(3);
-  // }
-  // let b = await longtask(4);
-  // let c;
-  // try {
-  //   c = longtask(5);
-  // } catch (e) {
-  //   // noop
-  // }
-  return { a, b, c };
+let taskCount = 0;
+
+function longtask() {
+  console.time(taskCount.toString());
+  let sum = 0;
+  while (sum < 5e5) {
+    sum += Math.random();
+  }
+  console.timeEnd(taskCount.toString());
+  taskCount++;
 }
 
-fiberTask();
+async function program() {
+  longtask(1);
+  longtask(2);
+  longtask(3);
+  longtask(3);
+  longtask(4);
+  longtask(5);
+  longtask(6);
+  longtask(7);
+  longtask(8);
+  longtask(9);
+  longtask(10);
+  longtask(11);
+  longtask(12);
+  longtask(14);
+}
+
+program$()
+

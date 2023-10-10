@@ -84,4 +84,11 @@ let splittableTypes = {
   AwaitExpression: true,
 };
 
+
+// These types are the direct cause of all leaps in control flow.
+let leapTypes = {
+  ReturnStatement: true,
+};
+
+export const containsLeap = makePredicate("containsLeap", leapTypes);
 export const containsSplittable = makePredicate('containsSplittable', splittableTypes);

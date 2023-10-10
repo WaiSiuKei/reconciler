@@ -9,8 +9,8 @@ import assert from 'node:assert';
 import * as leap from './leap.mjs';
 import * as meta from './meta.mjs';
 import * as util from './util.mjs';
-import { NOTIMPLEMENTED } from './not-reached.mjs';
-import { containsSplittable } from './meta.mjs';
+import {NOTIMPLEMENTED} from './not-reached.mjs';
+import {containsSplittable} from './meta.mjs';
 
 let hasOwn = Object.prototype.hasOwnProperty;
 
@@ -414,7 +414,7 @@ Ep.explodeStatement = function (path, labelId) {
     return;
   }
 
-  if (!meta.containsSplittable(stmt)) {
+  if (!meta.containsSplittable(stmt) && !meta.containsLeap(stmt)) {
     // Technically we should be able to avoid emitting the statement
     // altogether if !meta.hasSideEffects(stmt), but that leads to
     // confusing generated code (for instance, `while (true) {}` just
@@ -426,7 +426,7 @@ Ep.explodeStatement = function (path, labelId) {
 
   switch (stmt.type) {
     case 'ExpressionStatement':
-      self.explodeExpression(path.get('expression'), true, { mark: true });
+      self.explodeExpression(path.get('expression'), true, {mark: true});
       break;
 
     case 'LabeledStatement':
@@ -692,6 +692,7 @@ Ep.explodeStatement = function (path, labelId) {
       break;
 
     case 'ReturnStatement':
+      debugger;
       self.emitAbruptCompletion({
         type: 'return',
         value: self.explodeExpression(path.get('argument'))
@@ -820,27 +821,27 @@ Ep.emitAbruptCompletion = function (record) {
   if (!isValidCompletion(record)) {
     assert.ok(
       false,
-      'invalid completion record: ' +
+      "invalid completion record: " +
       JSON.stringify(record)
     );
   }
 
   assert.notStrictEqual(
-    record.type, 'normal',
-    'normal completions are not abrupt'
+    record.type, "normal",
+    "normal completions are not abrupt"
   );
 
   const t = util.getTypes();
   let abruptArgs = [t.stringLiteral(record.type)];
 
-  if (record.type === 'break' ||
-    record.type === 'continue') {
+  if (record.type === "break" ||
+    record.type === "continue") {
     t.assertLiteral(record.target);
     abruptArgs[1] = this.insertedLocs.has(record.target)
       ? record.target
       : t.cloneDeep(record.target);
-  } else if (record.type === 'return' ||
-    record.type === 'throw') {
+  } else if (record.type === "return" ||
+    record.type === "throw") {
     if (record.value) {
       t.assertExpression(record.value);
       abruptArgs[1] = this.insertedLocs.has(record.value)
@@ -852,7 +853,7 @@ Ep.emitAbruptCompletion = function (record) {
   this.emit(
     t.returnStatement(
       t.callExpression(
-        this.contextProperty('abrupt'),
+        this.contextProperty("abrupt"),
         abruptArgs
       )
     )
@@ -1023,7 +1024,6 @@ Ep.explodeExpression = function (path, ignoreResult, opts = {}) {
   // If the expression does not contain a splittable, then we either emit the
   // expression as a standalone statement or return it whole.
   if (!meta.containsSplittable(expr)) {
-    debugger;
     return finish(expr);
   }
 
@@ -1038,14 +1038,18 @@ Ep.explodeExpression = function (path, ignoreResult, opts = {}) {
 
   switch (expr.type) {
     case 'AwaitExpression':
-      after = self.loc();
-      self.mark(after);
+      after = this.loc();
       self.emitAssign(self.contextProperty('next'), after);
-      return finish(self.explodeExpression(path.get('argument'), false, {
+      self.explodeExpression(path.get('argument'), false, {
         async: true,
-      }));
+      });
+      self.mark(after);
+      break;
 
     case 'CallExpression':
+      if (opts.mark) {
+        after = this.loc();
+      }
       let calleePath = path.get('callee');
       let argsPath = path.get('arguments');
 
@@ -1077,18 +1081,15 @@ Ep.explodeExpression = function (path, ignoreResult, opts = {}) {
         newArgs = path.node.arguments;
       }
 
-      const ret = self.makeTaskRun(t.callExpression(newCallee, newArgs), opts.async);
       if (opts.mark) {
-        after = this.loc();
-        self.mark(after);
         self.emitAssign(self.contextProperty('next'), after);
-
       }
-      // Preserve the location so that source mappings for the statements
-      // link back to the yield properly.
-      ret.loc = path.node.loc;
+      const ret = self.makeTaskRun(t.callExpression(newCallee, newArgs), opts.async);
       self.emit(ret);
-      return self.contextProperty('sent');
+      if (opts.mark) {
+        self.mark(after);
+      }
+      return ret;
 
     default:
       console.error(

@@ -3,7 +3,10 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: 'airbnb-base',
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  root: true,
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   overrides: [
     {
       env: {
